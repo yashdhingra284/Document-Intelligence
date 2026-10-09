@@ -1,0 +1,10 @@
+# Environment secrets
+.env
+.env.*
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# local files
+Screenshot 2026-10-09 140631.png
