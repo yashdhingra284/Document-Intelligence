@@ -2,6 +2,12 @@
 .env
 .env.*
 
+# Python virtual environment and generated files
+.venv/
+__pycache__/
+*.py[cod]
+
+
 # Operating system files
 .DS_Store
 Thumbs.db
