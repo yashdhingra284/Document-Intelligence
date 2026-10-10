@@ -4,6 +4,7 @@ from pathlib import Path
 from uuid import uuid4
 from fastapi.openapi.utils import get_openapi
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from database import getDbConnection
 
 app = FastAPI(title="Document Intelligence API")
 
@@ -59,7 +60,12 @@ async def upload_documents(
     created_paths = []
     total_size = 0
 
+    connection = None
+    cursor = None
+
     try:
+        connection = getDbConnection()
+        cursor = connection.cursor()
         for file in files:
             extension = ALLOWED_TYPES.get(file.content_type)
 
@@ -106,14 +112,29 @@ async def upload_documents(
                     status_code=400,
                     detail=f"File contents do not match the claimed type: {file.filename}"
                 )
-        
+            cursor.execute(
+                """
+                INSERT INTO documents (
+                    original_filename,
+                    stored_filename,
+                    status
+                )
+                VALUES (%s, %s, %s)
+                """,
+                (file.filename, stored_name, "uploaded"),
+            )
+
+            document_id = cursor.lastrowid
             saved_files.append({
+                "document_id": document_id,
                 "original_filename": file.filename,
                 "stored_filename": stored_name,
                 "size_bytes": file_size,
                 "content_type": file.content_type,
             })
 
+        connection.commit()
+        
         return {
             "message": "Documents uploaded successfully",
             "count": len(saved_files),
@@ -122,6 +143,9 @@ async def upload_documents(
         }
 
     except Exception:
+        if connection is not None and connection.is_connected():
+            connection.rollback()
+
         # Remove every file created during this batch,
         # including a partially written current file.
         for path in created_paths:
@@ -131,8 +155,16 @@ async def upload_documents(
         raise
 
     finally:
+        if cursor is not None:
+            cursor.close()
+
+        if connection is not None and connection.is_connected():
+            connection.close()
+
+
         for file in files:
             await file.close()
+        
 
 # this code below shows the file picker option instead of inputting some text string.
 
