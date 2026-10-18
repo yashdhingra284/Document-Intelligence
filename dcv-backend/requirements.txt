@@ -33,12 +33,14 @@ opentelemetry-exporter-otlp-proto-http==1.45.1
 opentelemetry-proto==1.45.1
 opentelemetry-sdk==1.45.1
 opentelemetry-semantic-conventions==0.66b1
+pillow==13.0.0
 protobuf==7.36.2
 pydantic==2.14.0
 pydantic-extra-types==2.11.1
 pydantic-settings==2.15.0
 pydantic_core==2.50.0
 Pygments==2.21.0
+pypdf==6.21.1
 python-dotenv==1.2.4
 python-multipart==0.0.32
 PyYAML==6.0.3
