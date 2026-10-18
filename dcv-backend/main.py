@@ -275,3 +275,41 @@ async def upload_documents(
 
         if connection is not None and connection.is_connected():
             connection.close()
+
+@app.get("/documents")
+def get_documents():
+    connection = None
+    cursor = None
+
+    try:
+        connection = getDbConnection()
+        cursor = connection.cursor(dictionary = True)
+        cursor.execute("""
+            SELECT
+                document_id,
+                original_filename,
+                stored_filename,
+                uploaded_at,
+                status
+            FROM documents
+            ORDER BY uploaded_at DESC
+        """)
+
+        documents = cursor.fetchall()
+        # Convert datetime values into JSON-compatible strings.
+        for document in documents:
+            if document["uploaded_at"] is not None:
+                document["uploaded_at"] = (
+                    document["uploaded_at"].isoformat()
+                )
+
+        return {
+            "count": len(documents),
+            "documents": documents
+        }
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+        if connection is not None and connection.is_connected():
+            connection.close()
